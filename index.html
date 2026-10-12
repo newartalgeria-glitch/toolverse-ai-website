@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToolVerse | تول فيرس - أدوات مجانية ذكية وسريعة</title>
+  <meta name="description" content="منصة أدوات مجانية شاملة تعمل مباشرة في المتصفح بسرعة وأمان وبدون أي رسوم أو اشتراكات.">
+  
+  <!-- Google Fonts: Cairo (Arabic) & Inter (English) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            darkbg: '#0B0F19',
+            darkcard: '#111827',
+            darkborder: '#1F2937'
+          },
+          fontFamily: {
+            arabic: ['Cairo', 'sans-serif'],
+            english: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- QRCode.js Library CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- PDF-Lib CDN for 100% Client-Side PDF Tools -->
+  <script src="https://unpkg.com/pdf-lib@1.17.9/dist/pdf-lib.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar & Smooth Animations */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-nav {
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    /* Dynamic Font Based on Language */
+    html[dir="rtl"] body {
+      font-family: 'Cairo', sans-serif;
+    }
+    html[dir="ltr"] body {
+      font-family: 'Inter', sans-serif;
+    }
+    .tab-active {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+    }
+    .badge-free {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Header / Navbar -->
+  <header class="sticky top-0 z-50 glass-nav border-b border-darkborder/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
+          <i data-lucide="layers" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <span class="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
+            ToolVerse
+            <span class="text-xs px-2 py-0.5 rounded-full badge-free font-medium tracking-normal" data-i18n="badge_free">100% مجاني</span>
+          </span>
+          <p class="text-xs text-slate-400 hidden sm:block" data-i18n="tagline">أدواتك الذكية في مكان واحد</p>
+        </div>
+      </a>
+
+      <!-- Right Controls: Search, Lang Switcher, GitHub link -->
+      <div class="flex items-center gap-3">
+        <!-- Language Switcher Button -->
+        <button id="langToggleBtn" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-sm font-semibold transition-all shadow-sm hover:shadow hover:border-brand-500/50">
+          <i data-lucide="languages" class="w-4 h-4 text-brand-400"></i>
+          <span id="langBtnText">English</span>
+        </button>
+
+        <!-- Quick Info / Privacy Badge -->
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span data-i18n="privacy_badge">يعمل في متصفحك | خصوصية تامة</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden py-14 sm:py-20 border-b border-darkborder/50">
+    <!-- Ambient Background Lights -->
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-96 sm:w-[650px] h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-20 right-10 w-72 h-72 bg-purple-600/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs sm:text-sm font-semibold mb-6">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span data-i18n="hero_pill">بدون تسجيل • بدون رسوم • بدون خوادم</span>
+      </div>
+
+      <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight sm:leading-tight mb-5">
+        <span data-i18n="hero_title_1">أدوات رقمية ذكية</span>
+        <span class="bg-gradient-to-r from-brand-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent" data-i18n="hero_title_2">فورية ومجانية للجميع</span>
+      </h1>
+
+      <p class="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed font-normal" data-i18n="hero_desc">
+        مجموعة متكاملة من الأدوات المفيدة يومياً: ضغط وتعديل الصور، إنشاء رموز QR، توليد كلمات مرور فائقة الأمان، تنسيق النصوص، والعمليات الحسابية، كلها تعمل مباشرة على جهازك دون إرسال أي بيانات لخوادم خارجية.
+      </p>
+
+      <!-- Live Search Box -->
+      <div class="max-w-xl mx-auto relative group">
+        <div class="absolute inset-0 bg-gradient-to-r from-brand-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
+        <div class="relative flex items-center bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
+          <div class="px-4 text-slate-400">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </div>
+          <input type="text" id="toolSearchInput" 
+                 class="w-full py-4 px-2 bg-transparent text-slate-100 placeholder-slate-500 focus:outline-none text-base"
+                 data-i18n-placeholder="search_placeholder"
+                 placeholder="ابحث عن أداة (مثال: QR، ضغط الصور، كلمة سر...)" />
+          <button id="clearSearchBtn" class="hidden px-4 text-slate-400 hover:text-slate-200">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Tabs -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+    <div class="flex items-center gap-2 overflow-x-auto pb-3 no-scrollbar scroll-smooth">
+      <button class="cat-filter-btn tab-active px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2" data-cat="all">
+        <i data-lucide="grid" class="w-4 h-4"></i>
+        <span data-i18n="cat_all">جميع الأدوات</span>
+      </button>
+      <button class="cat-filter-btn bg-slate-800/80 hover:bg-slate-700/70 border border-slate-700/60 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2" data-cat="media">
+        <i data-lucide="image" class="w-4 h-4"></i>
+        <span data-i18n="cat_media">الصور والوسائط</span>
+      </button>
+      <button class="cat-filter-btn bg-slate-800/80 hover:bg-slate-700/70 border border-slate-700/60 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2" data-cat="security">
+        <i data-lucide="shield" class="w-4 h-4"></i>
+        <span data-i18n="cat_security">الأمان والتوليد</span>
+      </button>
+      <button class="cat-filter-btn bg-slate-800/80 hover:bg-slate-700/70 border border-slate-700/60 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2" data-cat="text">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        <span data-i18n="cat_text">النصوص والبيانات</span>
+      </button>
+      <button class="cat-filter-btn bg-slate-800/80 hover:bg-slate-700/70 border border-slate-700/60 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2" data-cat="calc">
+        <i data-lucide="calculator" class="w-4 h-4"></i>
+        <span data-i18n="cat_calc">الحسابات والتحويل</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Grid of Tools -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+    <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- TOOL 1: QR Code Generator -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="security media" data-tool="qr">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="qr-code" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_popular">شائع</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_qr_title">مولد رموز QR الذكي</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_qr_desc">أنشئ رموز QR مخصصة لأي رابط أو نص مع إمكانية تحميلها كصورة عالية الدقة فوراً.</p>
+        </div>
+        <button onclick="openModal('tool-qr')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 2: Image Compressor & Resizer -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="media" data-tool="img-compress">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="image-down" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" data-i18n="tag_instant">فوري 100%</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_img_title">ضغط وتحويل صيغ الصور</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_img_desc">قلل حجم الصور بنسبة تصل إلى 80% دون فقدان الجودة، مع تحويلها إلى WebP أو JPG دون مغادرة جهازك.</p>
+        </div>
+        <button onclick="openModal('tool-img-compress')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 3: Strong Password Generator -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="security" data-tool="pass-gen">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="key-round" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_security">أمان عالي</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_pass_title">مولد كلمات المرور الآمنة</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_pass_desc">أنشئ كلمات مرور عشوائية معقدة ومستحيلة التخمين مع تحديد الطول والرموز بضغطة زر واحدة.</p>
+        </div>
+        <button onclick="openModal('tool-pass-gen')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 4: Text Analyzer & Counter -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="text" data-tool="text-counter">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="text-quote" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_writing">للكتاب</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_text_title">محلل وعداد النصوص الذكي</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_text_desc">احسب الكلمات، الحروف، الأسطر، وتقدير وقت القراءة مع إمكانية تنظيف النص وتعديل حالته.</p>
+        </div>
+        <button onclick="openModal('tool-text-counter')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 5: JSON Formatter & Validator -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="text" data-tool="json-fmt">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="code-2" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_devs">للمطورين</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_json_title">منسق وفاحص أكواد JSON</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_json_desc">رتّب ونسّق نصوص JSON، واكتشف الأخطاء البرمجية بسهولة مع خيارات التصغير (Minify) والنسخ.</p>
+        </div>
+        <button onclick="openModal('tool-json-fmt')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 6: Percentage & Ratio Calculator -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="calc" data-tool="perc-calc">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="percent" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_math">رياضيات</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_perc_title">حاسبة النسبة المئوية الذكية</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_perc_desc">احسب النسب المئوية، مقدار الزيادة أو الخصم، والفرق بين القيم بسرعة ودون أي تعقيد.</p>
+        </div>
+        <button onclick="openModal('tool-perc-calc')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 7: Base64 Encoder / Decoder -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="text security" data-tool="base64">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="binary" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_codec">ترميز</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_b64_title">تشفير وفك تشفير Base64</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_b64_desc">حوّل النصوص إلى صيغة Base64 والعكس بدقة متناهية مع دعم الحروف العربية والرموز الخاصة.</p>
+        </div>
+        <button onclick="openModal('tool-base64')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 8: Color Palette & Converter -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="media" data-tool="color-picker">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="palette" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_design">تصميم</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_color_title">منتقي ومحول صيغ الألوان</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_color_desc">اختر أي لون واحصل على رموزه الدقيقة في صيغ HEX و RGB و HSL مع نسخ فوري لحافظتك.</p>
+        </div>
+        <button onclick="openModal('tool-color-picker')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 9: Unit Converter -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="calc" data-tool="unit-conv">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="scale" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_measure">قياس</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_unit_title">محول القياسات والوحدات</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_unit_desc">تحويل فوري دقيق بين وحدات الطول، المساحة، الكتلة، الوزن والقوة، الحجم، ودرجة الحرارة.</p>
+        </div>
+        <button onclick="openModal('tool-unit-conv')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 10: PDF Merger (100% Client-Side) -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="media" data-tool="pdf-merge">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="file-stack" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" data-i18n="tag_unlimited">غير محدود</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_pdf_title">أدوات ودمج ملفات PDF</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_pdf_desc">اجمع وادمج ملفات PDF متعددة في ملف واحد بسرعة وأمان تام بدون رفعها لأي سيرفر خارجي.</p>
+        </div>
+        <button onclick="openModal('tool-pdf-merge')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 11: Lorem Ipsum & Dummy Text Generator -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="text" data-tool="lorem-gen">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="align-left" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_design">للمصممين</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_lorem_title">مولد نصوص لوريم إيبسوم وبدائل عربية</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_lorem_desc">ولّد نصوصاً عشوائية تجريبية لتصميماتك ومشاريعك باللغتين العربية واللاتينية مع تحديد الفقرات.</p>
+        </div>
+        <button onclick="openModal('tool-lorem-gen')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 12: Interactive Pocket Calculator -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="calc" data-tool="calc-tool">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="calculator" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_math">حاسبة فورية</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_calc_title">الآلة الحاسبة التفاعلية</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_calc_desc">حاسبة رقمية سهلة الاستخدام للعمليات الحسابية السريعة والنسب والكسور في متصفحك مباشرة.</p>
+        </div>
+        <button onclick="openModal('tool-calc-tool')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+
+      <!-- TOOL 13: Text Case Converter & Formatter -->
+      <article class="tool-card glass-card rounded-2xl p-6 hover:border-brand-500/50 transition-all duration-300 flex flex-col justify-between group" data-category="text" data-tool="case-conv">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="type" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 border border-slate-700" data-i18n="tag_writing">تحويل وتنسيق</span>
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2" data-i18n="tool_case_title">محول حالة النصوص ومنظف التشكيل</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mb-6" data-i18n="tool_case_desc">تحويل فوري لحالات النصوص (كبير، صغير، عنوان، camelCase) مع ميزة إزالة التشكيل من النصوص العربية.</p>
+        </div>
+        <button onclick="openModal('tool-case-conv')" class="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-brand-600/20">
+          <span data-i18n="btn_use_tool">استخدم الأداة الآن</span>
+          <i data-lucide="arrow-left" class="w-4 h-4 rtl:rotate-0 ltr:rotate-180"></i>
+        </button>
+      </article>
+    </div>
+
+    <!-- Empty search result message -->
+    <div id="noResultsMessage" class="hidden text-center py-20">
+      <i data-lucide="search-x" class="w-12 h-12 mx-auto text-slate-600 mb-4"></i>
+      <h3 class="text-lg font-bold text-slate-300 mb-1" data-i18n="no_results_title">لم يتم العثور على أداة مطابقة</h3>
+      <p class="text-sm text-slate-500" data-i18n="no_results_desc">جرّب البحث بكلمات أخرى أو تصفح الأقسام أعلاه.</p>
+    </div>
+  </main>
+
+  <!-- Interactive Modals Container (Tools UI) -->
+  <div id="modalOverlay" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div id="modalContentWrapper" class="relative w-full max-w-lg bg-slate-900 border border-slate-700/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl transition-all scale-95 opacity-0 max-h-[90vh] flex flex-col my-auto">
+      
+      <!-- Modal Header (Compact) -->
+      <div class="flex items-center justify-between pb-3.5 border-b border-slate-800 mb-4 shrink-0">
+        <div class="flex items-center gap-3">
+          <div id="modalIconContainer" class="w-9 h-9 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center shrink-0">
+            <!-- Dynamic icon inserted by JS -->
+          </div>
+          <div>
+            <h3 id="modalTitle" class="text-lg font-bold text-white leading-tight">عنوان الأداة</h3>
+            <p id="modalSubtitle" class="text-xs text-slate-400">وصف موجز</p>
+          </div>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors shrink-0">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Dynamic Tool Content will be injected here -->
+      <div id="modalToolBody" class="overflow-y-auto pr-1 flex-1"></div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-6 end-6 z-50 hidden items-center gap-3 px-5 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white shadow-2xl transition-all">
+    <div id="toastIcon" class="text-emerald-400">
+      <i data-lucide="check-circle" class="w-5 h-5"></i>
+    </div>
+    <span id="toastMsg" class="text-sm font-medium">تم بنجاح!</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-darkborder/70 py-10 bg-slate-950/40 text-center text-sm text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-300">ToolVerse</span>
+        <span>•</span>
+        <span data-i18n="footer_copy">جميع الأدوات مجانية 100% وبدون اشتراكات</span>
+      </div>
+      <div class="flex items-center gap-4 text-xs">
+        <span class="inline-flex items-center gap-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span data-i18n="footer_status">جميع الأدوات تعمل محلياً بمتصفحك</span>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
