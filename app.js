@@ -192,6 +192,31 @@ const translations = {
     case_btn_kebab: "وصلات (kebab-case)",
     case_btn_clean_tashkeel: "إزالة التشكيل والتطويل من النص العربي",
     case_btn_copy: "نسخ النص المحول",
+
+    // Tool 14: Images to PDF
+    tool_imgpdf_title: "محول الصور إلى PDF",
+    tool_imgpdf_desc: "اجمع صورك وحوّلها إلى ملف PDF عالي الجودة بضغطة زر وبدون رفعها لأي خادم خارجي.",
+    imgpdf_drop_text: "اختر الصور أو اسحبها هنا (PNG, JPG, WebP)",
+    imgpdf_files_count: "الصور المحددة ({count}):",
+    imgpdf_fit_label: "تنسيق الصفحات:",
+    imgpdf_fit_auto: "حسب حجم كل صورة تلقائياً (Original)",
+    imgpdf_fit_a4: "صفحات A4 قياسية (Standard A4)",
+    imgpdf_btn_convert: "تحويل وتحميل ملف PDF",
+    imgpdf_converting: "جاري إنشاء ملف PDF...",
+    imgpdf_success: "تم إنشاء ملف PDF بنجاح!",
+
+    // Tool 15: Green Screen / Chroma Key
+    tool_chroma_title: "حذف وتغيير الخلفية الخضراء",
+    tool_chroma_desc: "احذف الكروما والخلفيات الخضراء واجعلها شفافة أو استبدلها بأي لون تختاره فورياً.",
+    chroma_drop_text: "انقر لاختيار صورة ذات خلفية خضراء أو اسحبها هنا",
+    chroma_target_color: "لون الخلفية المراد إزالته:",
+    chroma_tolerance: "حساسية الإزالة (Tolerance):",
+    chroma_mode_label: "نوع الاستبدال:",
+    chroma_mode_trans: "خلفية شفافة (Transparent PNG)",
+    chroma_mode_color: "استبدال بلون جديد (Custom Color)",
+    chroma_new_color: "اللون الجديد:",
+    chroma_download_btn: "تحميل الصورة المعدلة (PNG)",
+    chroma_processing: "جاري المعالجة...",
   },
 
   en: {
@@ -381,6 +406,31 @@ const translations = {
     case_btn_kebab: "kebab-case",
     case_btn_clean_tashkeel: "Remove Arabic Tashkeel & Diacritics",
     case_btn_copy: "Copy Transformed Text",
+
+    // Tool 14: Images to PDF
+    tool_imgpdf_title: "Images to PDF Converter",
+    tool_imgpdf_desc: "Combine multiple images into a high-quality PDF document locally in your browser.",
+    imgpdf_drop_text: "Select images or drop them here (PNG, JPG, WebP)",
+    imgpdf_files_count: "Selected Images ({count}):",
+    imgpdf_fit_label: "Page Sizing:",
+    imgpdf_fit_auto: "Fit Original Image Size",
+    imgpdf_fit_a4: "Standard A4 Document",
+    imgpdf_btn_convert: "Convert & Download PDF",
+    imgpdf_converting: "Generating PDF document...",
+    imgpdf_success: "PDF created successfully!",
+
+    // Tool 15: Green Screen / Chroma Key
+    tool_chroma_title: "Green Screen & Color Replacer",
+    tool_chroma_desc: "Remove chroma green backgrounds with transparency or replace with any custom color.",
+    chroma_drop_text: "Click or drop an image with green background here",
+    chroma_target_color: "Background Color to Remove:",
+    chroma_tolerance: "Removal Sensitivity (Tolerance):",
+    chroma_mode_label: "Replacement Mode:",
+    chroma_mode_trans: "Transparent Background (PNG)",
+    chroma_mode_color: "Replace with New Color",
+    chroma_new_color: "New Background Color:",
+    chroma_download_btn: "Download Processed Image (PNG)",
+    chroma_processing: "Processing image...",
   }
 };
 
@@ -664,6 +714,22 @@ function renderToolModal(toolId) {
       iconContainer.innerHTML = '<i data-lucide="type" class="w-6 h-6"></i>';
       body.innerHTML = getCaseConverterHtml();
       initCaseConverterTool();
+      break;
+
+    case 'tool-img-to-pdf':
+      modalTitle.textContent = t('tool_imgpdf_title');
+      modalSubtitle.textContent = t('tool_imgpdf_desc');
+      iconContainer.innerHTML = '<i data-lucide="images" class="w-6 h-6"></i>';
+      body.innerHTML = getImgToPdfHtml();
+      initImgToPdfTool();
+      break;
+
+    case 'tool-chroma-key':
+      modalTitle.textContent = t('tool_chroma_title');
+      modalSubtitle.textContent = t('tool_chroma_desc');
+      iconContainer.innerHTML = '<i data-lucide="wand-2" class="w-6 h-6"></i>';
+      body.innerHTML = getChromaKeyHtml();
+      initChromaKeyTool();
       break;
   }
   lucide.createIcons();
@@ -2220,6 +2286,452 @@ function initCaseConverterTool() {
   copyBtn.addEventListener('click', () => copyToClipboard(input.value));
 }
 
+// ==========================================
+// TOOL 14: IMAGES TO PDF (100% CLIENT-SIDE)
+// ==========================================
+function getImgToPdfHtml() {
+  return `
+    <div class="space-y-4">
+      <div id="imgPdfDropZone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-2xl p-6 text-center cursor-pointer transition-colors bg-slate-800/40">
+        <input type="file" id="imgPdfFileInput" accept="image/*" multiple class="hidden" />
+        <i data-lucide="images" class="w-10 h-10 mx-auto text-orange-400 mb-2"></i>
+        <p class="text-xs sm:text-sm font-medium text-slate-200 mb-1">${t('imgpdf_drop_text')}</p>
+        <p class="text-[11px] text-slate-400">PNG, JPG, WebP, GIF</p>
+      </div>
+
+      <div id="imgPdfControlsWrapper" class="hidden space-y-3">
+        <div class="flex items-center justify-between text-xs">
+          <span id="imgPdfCountText" class="font-semibold text-slate-300"></span>
+          <button id="imgPdfClearBtn" class="text-rose-400 hover:text-rose-300 font-medium transition">
+            ${t('pdf_btn_clear')}
+          </button>
+        </div>
+
+        <!-- Thumbnails Container -->
+        <div id="imgPdfThumbsContainer" class="max-h-36 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 bg-slate-950/70 border border-slate-800 rounded-xl"></div>
+
+        <!-- Page Format Option -->
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">${t('imgpdf_fit_label')}</label>
+          <select id="imgPdfFitSelect" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500">
+            <option value="auto">${t('imgpdf_fit_auto')}</option>
+            <option value="a4">${t('imgpdf_fit_a4')}</option>
+          </select>
+        </div>
+
+        <button id="imgPdfActionBtn" class="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-orange-600/30">
+          <i data-lucide="file-down" class="w-4 h-4"></i>
+          <span id="imgPdfActionLabel">${t('imgpdf_btn_convert')}</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function initImgToPdfTool() {
+  const dropZone = document.getElementById('imgPdfDropZone');
+  const fileInput = document.getElementById('imgPdfFileInput');
+  const wrapper = document.getElementById('imgPdfControlsWrapper');
+  const countText = document.getElementById('imgPdfCountText');
+  const thumbsContainer = document.getElementById('imgPdfThumbsContainer');
+  const clearBtn = document.getElementById('imgPdfClearBtn');
+  const fitSelect = document.getElementById('imgPdfFitSelect');
+  const actionBtn = document.getElementById('imgPdfActionBtn');
+  const actionLabel = document.getElementById('imgPdfActionLabel');
+
+  let selectedImages = [];
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-orange-500');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-orange-500');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-orange-500');
+    if (e.dataTransfer.files) {
+      addImages(Array.from(e.dataTransfer.files));
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files) {
+      addImages(Array.from(e.target.files));
+    }
+  });
+
+  function addImages(files) {
+    const valid = files.filter(f => f.type.startsWith('image/'));
+    selectedImages = [...selectedImages, ...valid];
+    renderThumbnails();
+  }
+
+  function renderThumbnails() {
+    if (selectedImages.length === 0) {
+      wrapper.classList.add('hidden');
+      return;
+    }
+
+    wrapper.classList.remove('hidden');
+    countText.textContent = t('imgpdf_files_count', { count: selectedImages.length });
+    thumbsContainer.innerHTML = '';
+
+    selectedImages.forEach((file, index) => {
+      const card = document.createElement('div');
+      card.className = 'relative group aspect-square rounded-lg overflow-hidden border border-slate-700 bg-slate-900 flex items-center justify-center';
+      
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      img.className = 'w-full h-full object-cover';
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'absolute top-1 end-1 w-5 h-5 rounded-full bg-rose-600/90 text-white flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow';
+      removeBtn.innerHTML = '×';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        selectedImages.splice(index, 1);
+        renderThumbnails();
+      };
+
+      card.appendChild(img);
+      card.appendChild(removeBtn);
+      thumbsContainer.appendChild(card);
+    });
+  }
+
+  clearBtn.addEventListener('click', () => {
+    selectedImages = [];
+    renderThumbnails();
+  });
+
+  actionBtn.addEventListener('click', async () => {
+    if (selectedImages.length === 0) return;
+
+    try {
+      actionBtn.disabled = true;
+      actionLabel.textContent = t('imgpdf_converting');
+
+      const pdfDoc = await PDFLib.PDFDocument.create();
+      const fitMode = fitSelect.value; // 'auto' or 'a4'
+
+      for (const file of selectedImages) {
+        // Render image to canvas to normalize format to high quality JPEG
+        const imgBitmap = await createImageBitmap(file);
+        const canvas = document.createElement('canvas');
+        canvas.width = imgBitmap.width;
+        canvas.height = imgBitmap.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(imgBitmap, 0, 0);
+
+        const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+        const jpegBytes = await fetch(jpegDataUrl).then(res => res.arrayBuffer());
+        const embeddedImg = await pdfDoc.embedJpg(jpegBytes);
+
+        if (fitMode === 'a4') {
+          // Standard A4: 595.28 x 841.89 points
+          const a4Width = 595.28;
+          const a4Height = 841.89;
+          const page = pdfDoc.addPage([a4Width, a4Height]);
+          
+          const margin = 20;
+          const maxWidth = a4Width - (margin * 2);
+          const maxHeight = a4Height - (margin * 2);
+          
+          const scale = Math.min(maxWidth / embeddedImg.width, maxHeight / embeddedImg.height);
+          const drawWidth = embeddedImg.width * scale;
+          const drawHeight = embeddedImg.height * scale;
+          
+          const posX = (a4Width - drawWidth) / 2;
+          const posY = (a4Height - drawHeight) / 2;
+
+          page.drawImage(embeddedImg, {
+            x: posX,
+            y: posY,
+            width: drawWidth,
+            height: drawHeight
+          });
+        } else {
+          // Fit original image aspect and dimensions
+          const page = pdfDoc.addPage([embeddedImg.width, embeddedImg.height]);
+          page.drawImage(embeddedImg, {
+            x: 0,
+            y: 0,
+            width: embeddedImg.width,
+            height: embeddedImg.height
+          });
+        }
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'toolverse-images.pdf';
+      a.click();
+
+      showToast(t('imgpdf_success'));
+    } catch (err) {
+      console.error('Image to PDF error:', err);
+      alert('Error creating PDF: ' + err.message);
+    } finally {
+      actionBtn.disabled = false;
+      actionLabel.textContent = t('imgpdf_btn_convert');
+    }
+  });
+}
+
+// ==========================================
+// TOOL 15: GREEN SCREEN & CHROMA KEY REMOVER (100% CLIENT-SIDE)
+// ==========================================
+function getChromaKeyHtml() {
+  return `
+    <div class="space-y-3.5">
+      <!-- File drop zone -->
+      <div id="chromaDropZone" class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-slate-800/40">
+        <input type="file" id="chromaFileInput" accept="image/*" class="hidden" />
+        <i data-lucide="wand-2" class="w-8 h-8 mx-auto text-emerald-400 mb-2"></i>
+        <p class="text-xs sm:text-sm font-medium text-slate-200 mb-0.5">${t('chroma_drop_text')}</p>
+        <p class="text-[11px] text-slate-400">PNG, JPG, WebP</p>
+      </div>
+
+      <!-- Controls & Preview (Hidden until image is selected) -->
+      <div id="chromaControlsWrapper" class="hidden space-y-3">
+        
+        <!-- Controls row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+          <!-- Target Color (Key Color) -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">${t('chroma_target_color')}</label>
+            <div class="flex items-center gap-2 bg-slate-800 p-1.5 px-2.5 rounded-lg border border-slate-700">
+              <input type="color" id="chromaKeyColor" value="#00FF00" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+              <span id="chromaKeyColorVal" class="text-xs font-mono text-slate-200">#00FF00 (Green)</span>
+            </div>
+          </div>
+
+          <!-- Sensitivity (Tolerance) Slider -->
+          <div>
+            <div class="flex justify-between text-[11px] text-slate-300 mb-1">
+              <span>${t('chroma_tolerance')}</span>
+              <span id="chromaTolVal" class="font-bold text-emerald-400">65</span>
+            </div>
+            <input type="range" id="chromaTolSlider" min="15" max="150" value="65" class="w-full accent-emerald-500 cursor-pointer" />
+          </div>
+
+          <!-- Mode Selector: Transparent vs Replace Color -->
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">${t('chroma_mode_label')}</label>
+            <select id="chromaModeSelect" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+              <option value="transparent">${t('chroma_mode_trans')}</option>
+              <option value="color">${t('chroma_mode_color')}</option>
+            </select>
+          </div>
+
+          <!-- Replacement Color (Enabled when mode is color) -->
+          <div id="chromaNewColorContainer" class="hidden">
+            <label class="block text-[11px] font-medium text-slate-300 mb-1">${t('chroma_new_color')}</label>
+            <div class="flex items-center gap-2 bg-slate-800 p-1.5 px-2.5 rounded-lg border border-slate-700">
+              <input type="color" id="chromaNewColor" value="#1e293b" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0" />
+              <span id="chromaNewColorVal" class="text-xs font-mono text-slate-200">#1E293B</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Canvas Preview Area with Checkered Pattern for Transparency -->
+        <div class="flex justify-center p-3 bg-slate-950/80 rounded-2xl border border-slate-800 overflow-hidden" 
+             style="background-image: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%); background-size: 16px 16px;">
+          <canvas id="chromaPreviewCanvas" class="max-h-48 max-w-full rounded-lg shadow-lg object-contain"></canvas>
+        </div>
+
+        <!-- Download Button -->
+        <button id="chromaDownloadBtn" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-600/30">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>${t('chroma_download_btn')}</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function initChromaKeyTool() {
+  const dropZone = document.getElementById('chromaDropZone');
+  const fileInput = document.getElementById('chromaFileInput');
+  const wrapper = document.getElementById('chromaControlsWrapper');
+  const keyColorInput = document.getElementById('chromaKeyColor');
+  const keyColorVal = document.getElementById('chromaKeyColorVal');
+  const tolSlider = document.getElementById('chromaTolSlider');
+  const tolVal = document.getElementById('chromaTolVal');
+  const modeSelect = document.getElementById('chromaModeSelect');
+  const newColorContainer = document.getElementById('chromaNewColorContainer');
+  const newColorInput = document.getElementById('chromaNewColor');
+  const newColorVal = document.getElementById('chromaNewColorVal');
+  const canvas = document.getElementById('chromaPreviewCanvas');
+  const ctx = canvas.getContext('2d');
+  const downloadBtn = document.getElementById('chromaDownloadBtn');
+
+  let rawImage = null;
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-emerald-500');
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('border-emerald-500');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-emerald-500');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      loadImage(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) {
+      loadImage(e.target.files[0]);
+    }
+  });
+
+  function loadImage(file) {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        rawImage = img;
+        wrapper.classList.remove('hidden');
+        processChroma();
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function hexToRgb(hex) {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    return {
+      r: (num >> 16) & 255,
+      g: (num >> 8) & 255,
+      b: num & 255
+    };
+  }
+
+  function processChroma() {
+    if (!rawImage) return;
+
+    // Set canvas dimensions (scale down for max performance if massive)
+    const maxDim = 1200;
+    let w = rawImage.width;
+    let h = rawImage.height;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+
+    // Draw original image
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(rawImage, 0, 0, w, h);
+
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const data = imgData.data;
+
+    const target = hexToRgb(keyColorInput.value);
+    const tolerance = parseInt(tolSlider.value, 10);
+    const mode = modeSelect.value;
+    const repColor = hexToRgb(newColorInput.value);
+
+    // Fast Color Distance algorithm
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      const dr = r - target.r;
+      const dg = g - target.g;
+      const db = b - target.b;
+      const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+
+      if (dist < tolerance) {
+        if (mode === 'transparent') {
+          // Make pixel transparent
+          data[i + 3] = 0;
+        } else {
+          // Replace with new color
+          data[i] = repColor.r;
+          data[i + 1] = repColor.g;
+          data[i + 2] = repColor.b;
+          data[i + 3] = 255;
+        }
+      } else if (dist < tolerance + 15) {
+        // Soft edge antialiasing
+        const ratio = (dist - tolerance) / 15;
+        if (mode === 'transparent') {
+          data[i + 3] = Math.round(data[i + 3] * ratio);
+        } else {
+          data[i] = Math.round(repColor.r * (1 - ratio) + r * ratio);
+          data[i + 1] = Math.round(repColor.g * (1 - ratio) + g * ratio);
+          data[i + 2] = Math.round(repColor.b * (1 - ratio) + b * ratio);
+        }
+      }
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  keyColorInput.addEventListener('input', (e) => {
+    keyColorVal.textContent = e.target.value.toUpperCase();
+    processChroma();
+  });
+
+  tolSlider.addEventListener('input', (e) => {
+    tolVal.textContent = e.target.value;
+    processChroma();
+  });
+
+  modeSelect.addEventListener('change', () => {
+    if (modeSelect.value === 'color') {
+      newColorContainer.classList.remove('hidden');
+    } else {
+      newColorContainer.classList.add('hidden');
+    }
+    processChroma();
+  });
+
+  newColorInput.addEventListener('input', (e) => {
+    newColorVal.textContent = e.target.value.toUpperCase();
+    processChroma();
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    if (!rawImage) return;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'toolverse-chroma-removed.png';
+    a.click();
+  });
+}
+
 // Kickstart on DOM Ready
 document.addEventListener('DOMContentLoaded', initApp);
+
 
